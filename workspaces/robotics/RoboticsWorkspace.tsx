@@ -330,10 +330,33 @@ export function RoboticsWorkspace({
       <DiagnosticOverlay
         isOpen={showDiagnostics}
         onClose={() => setShowDiagnostics(false)}
+        providerRef={activeSimProvider}
         stats={simulationStats}
         isDarkMode={isDarkMode}
         onOpenToolIntegration={onOpenToolIntegration}
       />
+
+      {/* Floating HUD Quick Badge (Always visible on viewport when diagnostics panel is closed) */}
+      {!showDiagnostics && !isLoading && !loadError && (
+        <button
+          onClick={() => setShowDiagnostics(true)}
+          className={`fixed bottom-20 right-4 z-30 px-3 py-1.5 rounded-full border text-[11px] font-mono font-medium flex items-center gap-2 shadow-lg backdrop-blur-xl transition-all hover:scale-105 active:scale-95 ${
+            isDarkMode
+              ? 'bg-slate-900/80 border-white/10 text-slate-300 hover:border-indigo-500/50 hover:text-white'
+              : 'bg-white/80 border-slate-200 text-slate-700 hover:border-indigo-400 hover:text-slate-900'
+          }`}
+          title="Open Simulation Telemetry HUD (Shortcut: D)"
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${
+              simulationStats.fps >= 55 ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+            }`}
+          />
+          <span className="font-bold text-emerald-400">{simulationStats.fps.toFixed(0)} FPS</span>
+          <span className="text-slate-400">·</span>
+          <span>{simulationStats.collisionCount} Col</span>
+        </button>
+      )}
 
       {/* Expanded API Log Modal */}
       {activeLog && (

@@ -5,6 +5,8 @@
 
 import React, { useRef, useState } from 'react';
 import { AgentSamDrawer } from '../components/AgentSamDrawer';
+import { CadCreatorSidenav } from '../components/CadCreatorSidenav';
+import { MobileNavigationDock } from '../components/MobileNavigationDock';
 import { MujocoSimulationProvider } from '../lib/robotics/simulation/mujoco-provider';
 import { SimulationProvider } from '../lib/robotics/simulation/provider';
 import { GenerativeAssetWorkspace } from '../workspaces/generative/GenerativeAssetWorkspace';
@@ -21,6 +23,7 @@ export function CadCreatorApp() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [showCopilot, setShowCopilot] = useState(false);
+  const [isSidenavOpen, setIsSidenavOpen] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const simProviderRef = useRef<SimulationProvider>(new MujocoSimulationProvider());
@@ -44,7 +47,11 @@ export function CadCreatorApp() {
   };
 
   return (
-    <div className={`w-full h-full flex flex-col overflow-hidden ${isDarkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div
+      className={`w-full h-full flex flex-col overflow-hidden ${
+        isDarkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+      }`}
+    >
       {/* Top Application Shell Header */}
       <CadCreatorShell
         activeWorkspace={activeWorkspace}
@@ -54,20 +61,28 @@ export function CadCreatorApp() {
         showDiagnostics={showDiagnostics}
         onToggleDiagnostics={() => setShowDiagnostics(!showDiagnostics)}
         onOpenCopilot={() => setShowCopilot(true)}
+        onToggleSidenav={() => setIsSidenavOpen(!isSidenavOpen)}
+        isSidenavOpen={isSidenavOpen}
       />
 
       {/* Main Workspace Area */}
-      <main className="flex-1 relative w-full h-[calc(100%-3.5rem)] overflow-hidden">
+      <main className="flex-1 relative w-full h-[calc(100%-3.5rem)] overflow-hidden pb-16 md:pb-0">
         {/* Persistent MuJoCo 3D Viewport Layer (kept in DOM for continuous simulation loop) */}
         <div
           ref={containerRef}
           className={`absolute inset-0 transition-opacity duration-200 ${
-            activeWorkspace === 'robotics' ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'
+            activeWorkspace === 'robotics'
+              ? 'opacity-100 pointer-events-auto z-10'
+              : 'opacity-0 pointer-events-none z-0'
           }`}
         />
 
         {/* Robotics Overlay & Controls */}
-        <div className={`absolute inset-0 z-20 pointer-events-none ${activeWorkspace === 'robotics' ? 'block' : 'hidden'}`}>
+        <div
+          className={`absolute inset-0 z-20 pointer-events-none ${
+            activeWorkspace === 'robotics' ? 'block' : 'hidden'
+          }`}
+        >
           <div className="w-full h-full pointer-events-auto">
             <RoboticsWorkspace
               containerRef={containerRef}
@@ -131,6 +146,29 @@ export function CadCreatorApp() {
           </div>
         )}
       </main>
+
+      {/* Mobile Prioritized Navigation Dock (bottom of screen on mobile) */}
+      <MobileNavigationDock
+        activeWorkspace={activeWorkspace}
+        onSelectWorkspace={setActiveWorkspace}
+        onOpenSidenav={() => setIsSidenavOpen(true)}
+        onToggleDiagnostics={() => setShowDiagnostics(!showDiagnostics)}
+        showDiagnostics={showDiagnostics}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Glassmorphic Sidenav Drawer */}
+      <CadCreatorSidenav
+        isOpen={isSidenavOpen}
+        onClose={() => setIsSidenavOpen(false)}
+        activeWorkspace={activeWorkspace}
+        onSelectWorkspace={setActiveWorkspace}
+        isDarkMode={isDarkMode}
+        onOpenCopilot={() => {
+          setIsSidenavOpen(false);
+          setShowCopilot(true);
+        }}
+      />
 
       {/* AgentSam Copilot Drawer */}
       <AgentSamDrawer
